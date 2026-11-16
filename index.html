@@ -225,7 +225,7 @@
                 activeRoomTitle.textContent = 'Pokój: ' + roomName;
                 activeUserName.textContent = userName;
 
-                const response = await fetch(`/api/token?room=${encodeURIComponent(roomName)}&username=${encodeURIComponent(userName)}`);
+                const response = await fetch(`https://mimeet-api.o5k4r-solutions.workers.dev/api/token?room=${encodeURIComponent(roomName)}&username=${encodeURIComponent(userName)}`);
                 if (!response.ok) throw new Error('Nie udało się pobrać tokenu autoryzacyjnego');
                 const data = await response.json();
                 const token = data.token;
@@ -250,7 +250,7 @@
                 roomView.classList.remove('hidden');
 
             } catch (error) {
-                alert("Błąd połączenia z serwerem wideo. Sprawdź konfigurację bezpiecznego tokenu Cloudflare.");
+                alert("Błąd połączenia z serwerem wideo. Sprawdź konfigurację.");
                 console.error(error);
             }
         });
