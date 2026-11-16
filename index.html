@@ -730,7 +730,13 @@
                 let data;
                 try {
                     const response = await fetch(`${TOKEN_URL}?room=${encodeURIComponent(roomName)}&username=${encodeURIComponent(userName)}`);
-                    if (!response.ok) throw new Error('TOKEN_HTTP_' + response.status);
+                    if (!response.ok) {
+                        let detail = '';
+                        try { detail = (await response.json()).error || ''; } catch (_) {}
+                        const he = new Error('TOKEN_HTTP_' + response.status);
+                        he.detail = detail;
+                        throw he;
+                    }
                     data = await response.json();
                 } catch (err) {
                     if (String(err.message).startsWith('TOKEN_HTTP_')) throw err;
@@ -821,8 +827,8 @@
         function describeError(err) {
             const m = String(err && err.message || err);
             if (m === 'LIVEKIT_LIB') return 'Nie udało się załadować modułu wideo. Sprawdź połączenie z internetem, wyłącz blokadę reklam dla tej strony i odśwież ją.';
-            if (m === 'TOKEN_NETWORK') return 'Nie udało się połączyć z serwerem autoryzacji (mimeet-api). Sprawdź internet albo ustawienia CORS w workerze.';
-            if (m.startsWith('TOKEN_HTTP_')) return 'Serwer autoryzacji zwrócił błąd ' + m.replace('TOKEN_HTTP_', '') + '. Sprawdź worker mimeet-api i jego klucze LiveKit.';
+            if (m === 'TOKEN_NETWORK') return 'Serwer autoryzacji (mimeet-api) nie odpowiedział poprawnie. Zwykle to błąd 500 w workerze albo brak nagłówków CORS. Szczegóły są w konsoli.';
+            if (m.startsWith('TOKEN_HTTP_')) return 'Serwer autoryzacji zwrócił błąd ' + m.replace('TOKEN_HTTP_', '') + (err.detail ? ': ' + err.detail : '. Sprawdź worker mimeet-api i jego sekrety LiveKit.');
             if (m === 'TOKEN_INVALID') return 'Serwer autoryzacji zwrócił nieprawidłowy token. W workerze użyj: token: await at.toJwt() (w nowszych wersjach livekit-server-sdk toJwt() jest asynchroniczne).';
             if (/permission|denied|NotAllowed/i.test(m)) return 'Brak zgody na kamerę lub mikrofon. Zezwól na dostęp w ustawieniach przeglądarki i spróbuj ponownie.';
             return 'Nie udało się połączyć z serwerem wideo (' + m + '). Sprawdź adres LIVEKIT_URL oraz klucze w workerze.';
